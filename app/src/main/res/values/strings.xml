@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">InAppBillingV3</string>
+    <string name="buy_in_app">Comprar pelo aplicativo</string>
+</resources>
