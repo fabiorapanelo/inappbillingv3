@@ -3,7 +3,7 @@ package com.fabiorapanelo.inappbillingv3;
 public interface InAppBillingConstants {
 
 
-    public static final int API_VERSION = 3;
+    public static final int API_VERSION = 5;
 
     public static final String ITEM_PURCHASED = "android.test.purchased";
     public static final String ITEM_CANCELED = "android.test.canceled";

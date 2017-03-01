@@ -12,10 +12,23 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+
     <Button
+        android:id="@+id/buyInAppButton"
         android:layout_width="match_parent"
         android:text="@string/buy_in_app"
         android:layout_height="wrap_content"
-        android:onClick="buyInApp"/>
-
+        android:onClick="buyInApp"
+        android:visibility="invisible"/>
+    <Button
+        android:id="@+id/consumeButton"
+        android:layout_width="match_parent"
+        android:text="@string/consume"
+        android:layout_height="wrap_content"
+        android:onClick="consume"
+        android:visibility="invisible"/>
 </LinearLayout>

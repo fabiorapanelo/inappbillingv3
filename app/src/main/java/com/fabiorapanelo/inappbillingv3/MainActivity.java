@@ -7,21 +7,31 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements InAppBillingConstants {
 
     private InAppBillingHelper inAppBillingHelper;
-    private boolean hasItem = false;
+
+    private Button buyInAppButton;
+    private Button consumeButton;
+
+    private List<Purchase> purchases = new ArrayList<Purchase>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        buyInAppButton = (Button) this.findViewById(R.id.buyInAppButton);
+        consumeButton = (Button) this.findViewById(R.id.consumeButton);
 
         inAppBillingHelper = new InAppBillingHelper(this);
         inAppBillingHelper.startSetup(new AsyncListener() {
@@ -30,12 +40,12 @@ public class MainActivity extends AppCompatActivity implements InAppBillingConst
 
                 if (result.isSuccess()) {
                     try {
-                        List<Purchase> purchases = inAppBillingHelper.getOwnedItems(ITEM_TYPE_INAPP);
-                        for(Purchase purchase: purchases){
-                            if(ITEM_PURCHASED.equals(purchase.getSku())){
-                                hasItem = true;
-                                break;
-                            }
+                        purchases = inAppBillingHelper.getOwnedItems(ITEM_TYPE_INAPP);
+
+                        if(hasItem(ITEM_PURCHASED)){
+                            setBuyButtonVisible(false);
+                        } else {
+                            setBuyButtonVisible(true);
                         }
 
                     } catch (RemoteException | JSONException e) {
@@ -49,20 +59,27 @@ public class MainActivity extends AppCompatActivity implements InAppBillingConst
 
     public void buyInApp(View view){
 
-        if(!hasItem) {
-            int response = inAppBillingHelper.buy(this, ITEM_PURCHASED, ITEM_TYPE_INAPP, REQUEST_CODE_BUY_IN_APP);
-
-            if (response != BILLING_RESPONSE_RESULT_OK) {
-                String errorDescription = inAppBillingHelper.getResponseDescription(response);
-                Toast.makeText(getApplicationContext(), errorDescription, Toast.LENGTH_SHORT).show();
-            } else {
-                hasItem = true;
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "Item já comprado", Toast.LENGTH_SHORT).show();
+        int response = inAppBillingHelper.buy(this, ITEM_PURCHASED, ITEM_TYPE_INAPP, REQUEST_CODE_BUY_IN_APP);
+        if (response != BILLING_RESPONSE_RESULT_OK) {
+            String errorDescription = inAppBillingHelper.getResponseDescription(response);
+            Toast.makeText(getApplicationContext(), errorDescription, Toast.LENGTH_SHORT).show();
         }
     }
 
+    public void consume(View view){
+
+
+        Purchase purchase = this.getPurchaseItem(ITEM_PURCHASED);
+        int response = inAppBillingHelper.consume(purchase);
+
+        if (response != BILLING_RESPONSE_RESULT_OK) {
+            String errorDescription = inAppBillingHelper.getResponseDescription(response);
+            Toast.makeText(getApplicationContext(), errorDescription, Toast.LENGTH_SHORT).show();
+        } else {
+            this.setBuyButtonVisible(true);
+            Toast.makeText(getApplicationContext(), "Item consumido!", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -81,8 +98,11 @@ public class MainActivity extends AppCompatActivity implements InAppBillingConst
             try {
                 purchase = new Purchase(ITEM_TYPE_INAPP, purchaseData, dataSignature);
                 String sku = purchase.getSku();
+                purchases.add(purchase);
+                this.setBuyButtonVisible(false);
 
                 Toast.makeText(getApplicationContext(), "Item comprado:" + sku, Toast.LENGTH_LONG).show();
+
             }
             catch (JSONException e) {
                 e.printStackTrace();
@@ -91,5 +111,40 @@ public class MainActivity extends AppCompatActivity implements InAppBillingConst
         } else {
             Toast.makeText(getApplicationContext(), "Nao foi possivel comprar o item", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private boolean hasItem(String item){
+
+        for(Purchase purchase: purchases){
+            if(item.equals(purchase.getSku())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private Purchase getPurchaseItem(String item){
+
+        for(Purchase purchase: purchases){
+            if(item.equals(purchase.getSku())){
+                return purchase;
+            }
+        }
+
+        return null;
+    }
+
+    public void setBuyButtonVisible(boolean value){
+
+        if(value){
+            consumeButton.setVisibility(View.GONE);
+            buyInAppButton.setVisibility(View.VISIBLE);
+        } else {
+            consumeButton.setVisibility(View.VISIBLE);
+            buyInAppButton.setVisibility(View.GONE);
+        }
+
     }
 }

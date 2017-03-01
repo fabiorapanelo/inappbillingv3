@@ -50,7 +50,7 @@ public class InAppBillingHelper implements InAppBillingConstants {
                     if (response != BILLING_RESPONSE_RESULT_OK) {
                         listener.onFinished(new AsyncResult(response, "Error checking for billing v3 support."));
                     } else {
-                        listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_OK, "Setup successful."));
+                        listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_OK, "Conectado ao In App Billing V" + API_VERSION));
                     }
                 }
                 catch (RemoteException e) {
@@ -130,6 +130,19 @@ public class InAppBillingHelper implements InAppBillingConstants {
         } while (!TextUtils.isEmpty(continueToken));
 
         return purchases;
+    }
+
+    public int consume(Purchase purchase)  {
+        try {
+            String token = purchase.getToken();
+            String sku = purchase.getSku();
+
+            int response = service.consumePurchase(API_VERSION, context.getPackageName(), token);
+            return response;
+        }
+        catch (RemoteException e) {
+            return BILLING_RESPONSE_RESULT_ERROR;
+        }
     }
 
     public int getResponseCodeFromBundle(Bundle b) {
