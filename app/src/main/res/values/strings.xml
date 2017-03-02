@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">InAppBillingV3</string>
+    <string name="app_name">InAppBilling</string>
     <string name="buy_in_app">Comprar pelo aplicativo</string>
     <string name="consume">Consumir</string>
 </resources>

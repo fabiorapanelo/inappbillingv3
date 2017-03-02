@@ -94,24 +94,20 @@ public class MainActivity extends AppCompatActivity implements InAppBillingConst
                 return;
             }
 
-            Purchase purchase = null;
             try {
-                purchase = new Purchase(ITEM_TYPE_INAPP, purchaseData, dataSignature);
-                String sku = purchase.getSku();
+                Purchase purchase = new Purchase(ITEM_TYPE_INAPP, purchaseData, dataSignature);
                 purchases.add(purchase);
+                Toast.makeText(getApplicationContext(), "Item comprado:" + purchase.getSku(),
+                        Toast.LENGTH_LONG).show();
                 this.setBuyButtonVisible(false);
-
-                Toast.makeText(getApplicationContext(), "Item comprado:" + sku, Toast.LENGTH_LONG).show();
-
             }
-            catch (JSONException e) {
-                e.printStackTrace();
-                return;
-            }
+            catch (JSONException e) {}
         } else {
-            Toast.makeText(getApplicationContext(), "Nao foi possivel comprar o item", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Nao foi possivel comprar o item",
+                    Toast.LENGTH_LONG).show();
         }
     }
+
 
     private boolean hasItem(String item){
 

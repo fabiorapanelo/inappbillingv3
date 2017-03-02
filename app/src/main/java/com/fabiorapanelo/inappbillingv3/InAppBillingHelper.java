@@ -35,10 +35,19 @@ public class InAppBillingHelper implements InAppBillingConstants {
 
     public void startSetup(final AsyncListener listener) {
 
+        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        serviceIntent.setPackage("com.android.vending");
+        List<ResolveInfo> intentServices = context.getPackageManager().queryIntentServices(serviceIntent, 0);
+
+        if (intentServices == null || intentServices.isEmpty()) {
+            listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE,
+                    "Billing service unavailable on device."));
+            return;
+        }
+
         serviceConnection = new ServiceConnection() {
             @Override
-            public void onServiceDisconnected(ComponentName name) {
-            }
+            public void onServiceDisconnected(ComponentName name) {}
 
             @Override
             public void onServiceConnected(ComponentName name, IBinder iBinder) {
@@ -47,34 +56,29 @@ public class InAppBillingHelper implements InAppBillingConstants {
                 try {
                     int response = service.isBillingSupported(API_VERSION, packageName, ITEM_TYPE_INAPP);
 
-                    if (response != BILLING_RESPONSE_RESULT_OK) {
-                        listener.onFinished(new AsyncResult(response, "Error checking for billing v3 support."));
+                    if (response == BILLING_RESPONSE_RESULT_OK) {
+                        listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_OK,
+                                "Conectado ao In App Billing V" + API_VERSION));
                     } else {
-                        listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_OK, "Conectado ao In App Billing V" + API_VERSION));
+                        listener.onFinished(new AsyncResult(response, "Error checking for billing v3 support."));
                     }
                 }
                 catch (RemoteException e) {
-                    listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_ERROR, "RemoteException while setting up in-app billing."));
-                    return;
+                    listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_ERROR,
+                            "RemoteException while setting up in-app billing."));
                 }
             }
         };
 
-        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
-        List<ResolveInfo> intentServices = context.getPackageManager().queryIntentServices(serviceIntent, 0);
-        if (intentServices != null && !intentServices.isEmpty()) {
-            context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-        }
-        else {
-            listener.onFinished(new AsyncResult(BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE, "Billing service unavailable on device."));
-        }
+        context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     public int buy(Activity activity, String sku, String itemType, int requestCode){
 
         try {
-            Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, context.getPackageName(), sku, itemType, "");
+            Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, context.getPackageName(),
+                    sku, itemType, "");
 
             int response = getResponseCodeFromBundle(buyIntentBundle);
             if (response == BILLING_RESPONSE_RESULT_OK) {
